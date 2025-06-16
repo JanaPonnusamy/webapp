@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --background-color: #f8f9fa;
+            --card-color: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #3498db;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --store-dropdown-color: #e8f4f8;
+            --supplier-dropdown-color: #f0f8e8;
+            --reset-button-color: #ff6b6b;
+            --reset-button-hover: #ff5252;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: var(--card-color);
+            padding: 15px 20px; /* Reduced padding for a more compact header */
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 20px; /* Reduced font size for header title */
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 20px; /* Space between search boxes */
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center; /* Center the search boxes horizontally */
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+            max-width: 350px;
+            background-color: var(--card-color);
+            border-radius: 8px;
+            padding: 10px 15px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            left: 15px; /* Position the icon inside the input field */
+            color: #888;
+            font-size: 16px;
+            z-index: 1;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 45px; /* Increased left padding for icon */
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .dropdown-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dropdown-results div {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        .dropdown-results div:hover,
+        .dropdown-results .highlight {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        .dropdown-results.store div:hover,
+        .dropdown-results.store .highlight {
+            background-color: var(--store-dropdown-color);
+        }
+
+        .dropdown-results.supplier div:hover,
+        .dropdown-results.supplier .highlight {
+            background-color: var(--supplier-dropdown-color);
+        }
+
+        .table-container {
+            background-color: var(--card-color);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f5f7fa;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .table-info {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .grid {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fafafa;
+            border: 1px solid #ccc;
+        }
+
+        /* Set base height for table rows and cells, allowing growth */
+        .grid tr {
+            height: auto !important;
+            min-height: 38px !important; /* Increased min-height for 14px font */
+        }
+        
+        .grid th,
+        .grid td {
+            height: auto !important; /* Allow height to adjust based on content */
+            min-height: 38px !important; /* Ensure a minimum height for all cells */
+            padding: 6px 8px !important; /* Adjusted padding for better spacing */
+            font-size: 14px !important; /* Increased font size for all table content */
+            line-height: 1.5 !important; /* Adjusted line-height for readability */
+            vertical-align: middle !important;
+            box-sizing: border-box !important;
+            border: 1px solid #ddd !important;
+            text-align: left !important;
+            /* Default: keep text on one line, can be overridden for specific columns like 'Remarks' */
+            white-space: nowrap !important; 
+            overflow: hidden !important; 
+        }
+
+        /* Table header styling */
+        .grid th {
+            font-size: 14px !important; /* Consistent with table content */
+            font-weight: bold;
+            background-color: #e9ecef;
+            color: #495057;
+            text-transform: uppercase;
+        }
+
+        /* Center align specific columns (S.No, Qty, Unit) */
+        .grid th:nth-child(1), /* S.No header */
+        .grid td:nth-child(1), /* S.No data */
+        .grid th:nth-child(4), /* Qty header */
+        .grid td:nth-child(4), /* Qty data */
+        .grid th:nth-child(6), /* Unit header */
+        .grid td:nth-child(6) { /* Unit data */
+            text-align: center !important;
+        }
+
+        /* Input field inside table cells */
+        .grid input[type="number"] {
+            height: 24px !important; /* Adjusted height for easier interaction */
+            padding: 2px 4px !important; /* Adjusted padding */
+            font-size: 14px !important; /* Increased font size for input */
+            line-height: 1.5 !important;
+            margin: 0 !important;
+            border: 1px solid #ccc !important;
+            border-radius: 4px;
+            box-sizing: border-box !important;
+            display: block;
+            width: 70px !important; /* Slightly increased width */
+            text-align: center; /* Center align text in input */
+        }
+
+        /* Remarks column header specific width */
+        .grid th:nth-child(7) {
+            width: 250px; /* Ensure sufficient width for Remarks column */
+        }
+
+        /* Remarks column styling to ensure content fits and wraps */
+        .grid td.remark {
+            white-space: normal !important; /* Allow text to wrap */
+            overflow: visible !important; /* Ensure content is fully visible */
+            word-break: break-word; /* Break long words if necessary */
+            height: auto !important; /* Allow height to expand */
+            max-height: none !important; /* Remove any max-height constraint */
+            line-height: 1.5; /* Ensure comfortable line spacing for wrapped text */
+        }
+
+        .remark {
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Space between icon and text */
+            font-weight: 600;
+            padding-left: 5px; /* Slightly reduced padding */
+            box-sizing: border-box; /* Ensure padding is included in element's total width/height */
+        }
+
+        .remark i {
+            font-size: 14px; /* Increased icon size to match new font size */
+        }
+
+        .status-available {
+            color: var(--success-color); /* Green for available */
+        }
+
+        .status-danger {
+            color: var(--danger-color); /* Red for not available */
+        }
+
+        .status-warning {
+            color: var(--warning-color); /* Orange for partial/only available */
+        }
+
+        .status-info {
+            color: var(--info-color); /* Blue for quantity increased */
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            display: none; /* Hidden by default */
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px; /* Reduced gap */
+            padding: 8px 15px; /* Reduced padding for buttons section */
+            border-top: 1px solid var(--border-color);
+            background-color: #f5f7fa;
+        }
+
+        .btn {
+            padding: 8px 16px; /* Reduced padding for smaller buttons */
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px; /* Reduced font size for buttons */
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+        }
+
+        .btn-reset {
+            background-color: var(--reset-button-color);
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background-color: var(--reset-button-hover);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px; /* Space between pagination buttons */
+            margin-top: 20px;
+            padding: 10px 0;
+        }
+
+        .pagination button {
+            padding: 8px 14px; /* Adjusted padding for better size */
+            border: 1px solid var(--border-color);
+            border-radius: 50%; /* Make them circular */
+            background-color: var(--card-color);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: var(--transition);
+            min-width: 40px; /* Ensure a minimum width for circular shape */
+            min-height: 40px; /* Ensure a minimum height for circular shape */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .pagination button:hover:not(.active):not(:disabled) {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            cursor: default;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-ellipsis {
+            font-size: 18px;
+            font-weight: bold;
+            color: #999;
+            padding: 0 5px;
+            align-self: flex-end; /* Align with buttons */
+            margin-bottom: 5px;
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 250px;
+        }
+
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .notification.info { background-color: var(--info-color); }
+        .notification.success { background-color: var(--success-color); }
+        .notification.warning { background-color: var(--warning-color); }
+        .notification.error { background-color: var(--danger-color); }
+
+        .notification-title {
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .notification-message {
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px; /* Reduced padding */
+            margin-top: 20px; /* Reduced margin */
+            color: #666;
+            font-size: 12px; /* Reduced font size */
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-color);
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                margin-bottom: 10px;
+            }
+
+            .search-container {
+                flex-direction: column;
+                align-items: center; /* Center search boxes in column layout */
+            }
+
+            .search-box {
+                width: 90%; /* Wider on small screens */
+                max-width: none; /* Remove max-width on mobile */
+            }
+
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-info {
+                margin-top: 10px;
+            }
+
+            .actions {
+                flex-direction: column;
+                align-items: stretch; /* Stretch buttons to full width */
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome, {{ user }}</h1>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-store search-icon"></i>
+                <input type="text" id="storeSearch" placeholder="Search Store" autocomplete="off">
+                <div id="storeDropdown" class="dropdown-results store" style="display: none;"></div>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-truck search-icon"></i>
+                <input type="text" id="supplierSearch" placeholder="Search Supplier" autocomplete="off">
+                <div id="supplierDropdown" class="dropdown-results supplier" style="display: none;"></div>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-header">
+                <h2>Order Details</h2>
+                <div class="table-info" id="table-info">Showing 0 of 0 products</div>
+            </div>
+            <div style="position: relative; height: 400px; overflow-y: auto;">
+                <table id="dgvMain" class="grid">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">S.No</th>
+                            <th style="width: 120px;">Product Code</th>
+                            <th style="width: 200px;">Product Name</th>
+                            <th style="width: 80px; text-align: center;">Qty</th>
+                            <th style="width: 120px; text-align: center;">Edit Qty</th>
+                            <th style="width: 100px; text-align: center;">Unit</th>
+                            <th style="width: 250px;">Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <div class="loading-overlay" id="loading-overlay">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+            <div class="actions">
+                <button class="btn btn-reset" id="resetBtn">Reset</button>
+                <button class="btn btn-primary" id="submitBtn">Submit Changes</button>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- Pagination will be added here dynamically -->
+        </div>
+    </div>
+
+    <div class="notification" id="notification">
+        <div class="notification-title" id="notification-title"></div>
+        <div class="notification-message" id="notification-message"></div>
+    </div>
+
+    <footer>
+        <p>© 2023 Order Management Dashboard. All rights reserved.</p>
+    </footer>
+
+    {% raw %}
+    <script>
+        // Configuration for table items per page
+        const ITEMS_PER_PAGE = 20;
+        let currentPage = 1; // Tracks the current page
+        let totalItems = 0; // Total number of items in the current dataset
+        let allData = []; // Stores all fetched order data
+        let selectedStore = ''; // Stores the currently selected store name
+        let selectedSupplierCode = ''; // Stores the currently selected supplier code
+
+        // DOM Elements references
+        const storeSearch = document.getElementById('storeSearch');
+        const storeDropdown = document.getElementById('storeDropdown');
+        const supplierSearch = document.getElementById('supplierSearch');
+        const supplierDropdown = document.getElementById('supplierDropdown');
+        const tableBody = document.querySelector('#dgvMain tbody');
+        const tableInfo = document.getElementById('table-info');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const submitBtn = document.getElementById('submitBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const paginationContainer = document.getElementById('pagination');
+        const notification = document.getElementById('notification');
+        const notificationTitle = document.getElementById('notification-title');
+        const notificationMessage = document.getElementById('notification-message');
+
+        /**
+         * Displays the loading overlay.
+         */
+        function showLoading() {
+            loadingOverlay.style.display = 'flex';
+        }
+
+        /**
+         * Hides the loading overlay.
+         */
+        function hideLoading() {
+            loadingOverlay.style.display = 'none';
+        }
+
+        /**
+         * Displays a notification message to the user.
+         * @param {string} title - The title of the notification.
+         * @param {string} message - The main message of the notification.
+         * @param {string} [type='info'] - The type of notification (info, success, warning, error).
+         */
+        function showNotification(title, message, type = 'info') {
+            notification.className = 'notification show ' + type;
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000); // Notification disappears after 3 seconds
+        }
+
+        /**
+         * Updates the table information display (e.g., "Showing 1-20 of 100 products").
+         */
+        function updateTableInfo() {
+            const start = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+            const end = Math.min(start + ITEMS_PER_PAGE - 1, totalItems);
+            // Handles case where there are no items to show
+            tableInfo.textContent = `Showing ${totalItems > 0 ? start : 0}-${end} of ${totalItems} products`;
+        }
+
+        /**
+         * Creates and renders the pagination buttons dynamically.
+         */
+        function createPagination() {
+            const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+            paginationContainer.innerHTML = ''; // Clear existing pagination
+
+            // Do not display pagination if there is only one page or no data
+            if (totalPages <= 1) {
+                return;
+            }
+
+            // Create 'Previous' button
+            const prevBtn = document.createElement('button');
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            prevBtn.disabled = currentPage === 1; // Disable if on the first page
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable(); // Re-render table for the new page
+                    createPagination(); // Re-create pagination to update active state and disabled status
+                }
+            });
+            paginationContainer.appendChild(prevBtn);
+
+            // Logic for showing a limited number of page buttons with ellipses
+            const maxVisiblePages = 5; // Max number of page buttons to show
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+            // Adjust startPage if there aren't enough pages after it to fill maxVisiblePages
+            if (endPage - startPage + 1 < maxVisiblePages) {
+                startPage = Math.max(1, endPage - maxVisiblePages + 1);
+            }
+            
+            // Add ellipsis at the start if needed
+            if (startPage > 1) {
+                const ellipsisStart = document.createElement('span');
+                ellipsisStart.textContent = '...';
+                ellipsisStart.classList.add('pagination-ellipsis');
+                paginationContainer.appendChild(ellipsisStart);
+            }
+
+            // Create individual page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.className = i === currentPage ? 'active' : ''; // Set 'active' class for current page
+                pageBtn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderTable(); // Re-render table for the clicked page
+                    createPagination(); // Re-create pagination to update active state
+                });
+                paginationContainer.appendChild(pageBtn);
+            }
+
+            // Add ellipsis at the end if needed
+            if (endPage < totalPages) {
+                const ellipsisEnd = document.createElement('span');
+                ellipsisEnd.textContent = '...';
+                ellipsisEnd.classList.add('pagination-ellipsis');
+                paginationContainer.appendChild(ellipsisEnd);
+            }
+
+            // Create 'Next' button
+            const nextBtn = document.createElement('button');
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            nextBtn.disabled = currentPage === totalPages; // Disable if on the last page
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable(); // Re-render table for the new page
+                    createPagination(); // Re-create pagination to update active state and disabled status
+                }
+            });
+            paginationContainer.appendChild(nextBtn);
+        }
+
+        /**
+         * Updates the remark cell content and color based on the edited quantity.
+         * @param {HTMLElement | null} remarkCell - The DOM element for the remark cell, or null if only calculation is needed.
+         * @param {string} newValue - The new quantity entered by the user.
+         * @param {number} originalValue - The original quantity of the product.
+         * @returns {{remarkText: string, statusForDB: string}} - Object containing the remark text and database status.
+         */
+        function updateRemark(remarkCell, newValue, originalValue) {
+            const qty = parseInt(newValue, 10);
+            let remarkHTML = '';
+            let statusClass = '';
+            let remarkText = ''; // This will store the actual text
+            let statusForDB = ''; // This will store the status for the DB
+
+            if (isNaN(qty) || qty <= 0) {
+                remarkHTML = `<i class="fas fa-times-circle"></i> Not Available`;
+                statusClass = 'status-danger';
+                remarkText = 'Not Available';
+                statusForDB = 'Not Available';
+            } else if (qty < originalValue) {
+                remarkHTML = `<i class="fas fa-arrow-down"></i> Only Available Edit Qty`;
+                statusClass = 'status-warning';
+                remarkText = 'Only Available Edit Qty';
+                statusForDB = 'Partial'; 
+            } else if (qty > originalValue) {
+                remarkHTML = `<i class="fas fa-arrow-up"></i> Qty Increased`;
+                statusClass = 'status-info';
+                remarkText = 'Qty Increased';
+                statusForDB = 'Increased';
+            } else {
+                remarkHTML = `<i class="fas fa-check-circle"></i> Available`;
+                statusClass = 'status-available';
+                remarkText = 'Available';
+                statusForDB = 'Available';
+            }
+
+            // Only update DOM if remarkCell is provided (e.g., not when calculating initial remark for dataset)
+            if (remarkCell) {
+                remarkCell.className = `remark ${statusClass}`;
+                remarkCell.innerHTML = remarkHTML;
+            }
+
+            return { remarkText, statusForDB }; // Return these values
+        }
+
+        /**
+         * Sets up the functionality for a search box with dropdown suggestions.
+         * @param {string} inputId - The ID of the search input element.
+         * @param {string} dropdownId - The ID of the dropdown results element.
+         * @param {string} endpoint - The API endpoint to fetch suggestions from.
+         * @param {Function} onSelectCallback - Callback function executed when an item is selected.
+         */
+        function setupSearchBox(inputId, dropdownId, endpoint, onSelectCallback) {
+            const input = document.getElementById(inputId);
+            const dropdown = document.getElementById(dropdownId);
+            let suggestions = []; // Stores fetched suggestions
+            let currentIndex = -1; // Index for keyboard navigation in dropdown
+
+            // Event listener for user input in the search box
+            input.addEventListener('input', async () => {
+                const query = input.value.trim();
+                if (!query) {
+                    dropdown.style.display = 'none'; // Hide dropdown if input is empty
+                    return;
+                }
+
+                let url = endpoint + '?q=' + encodeURIComponent(query);
+                // If it's the supplier search, add the selected store to the query
+                if (inputId === 'supplierSearch' && selectedStore) {
+                    url += '&store=' + encodeURIComponent(selectedStore);
+                }
+
+                showLoading(); // Show loading indicator
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    suggestions = await response.json(); // Parse JSON response
+                    dropdown.innerHTML = ''; // Clear previous suggestions
+                    currentIndex = -1; // Reset highlight index
+
+                    if (suggestions.length > 0) {
+                        // Populate dropdown with suggestions
+                        suggestions.forEach(item => {
+                            const div = document.createElement('div');
+                            div.textContent = item;
+                            div.onclick = (e) => {
+                                selectItem(item); // Select item on click
+                                e.stopPropagation(); // Prevent document click from closing dropdown immediately
+                            };
+                            dropdown.appendChild(div);
+                        });
+                        dropdown.style.display = 'block'; // Show dropdown
+                    } else {
+                        dropdown.style.display = 'none'; // Hide if no suggestions
+                    }
+                } catch (error) {
+                    console.error('Error fetching suggestions:', error);
+                    dropdown.style.display = 'none';
+                } finally {
+                    hideLoading(); // Hide loading indicator
+                }
+            });
+
+            // Keyboard navigation for dropdown
+            input.addEventListener('keydown', e => {
+                const items = dropdown.querySelectorAll('div');
+                
+                // If dropdown is hidden but has suggestions, show it on arrow key press
+                if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && suggestions.length > 0 && dropdown.style.display === 'none') {
+                    dropdown.style.display = 'block';
+                }
+
+                if (e.key === 'ArrowDown') {
+                    currentIndex = (currentIndex + 1) % items.length;
+                    updateHighlight(items);
+                    if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' }); // Scroll to highlighted item
+                    e.preventDefault(); // Prevent default browser behavior (e.g., caret movement)
+                } else if (e.key === 'ArrowUp') {
+                    currentIndex = (currentIndex - 1 + items.length) % items.length;
+                    updateHighlight(items);
+                    if (items[currentIndex]) items[currentIndex].scrollIntoView({ block: 'nearest' });
+                    e.preventDefault();
+                } else if (e.key === 'Enter') {
+                    if (currentIndex >= 0 && suggestions[currentIndex]) {
+                        selectItem(suggestions[currentIndex]); // Select highlighted item
+                        e.preventDefault();
+                    } else if (suggestions.length > 0 && input.value.trim() !== '') {
+                        // If no item is highlighted but input has text, select the first suggestion
+                        selectItem(suggestions[0]);
+                        e.preventDefault();
+                    }
+                } else if (e.key === 'Escape') {
+                    dropdown.style.display = 'none'; // Hide dropdown on Escape
+                }
+            });
+
+            /**
+             * Updates the highlight on dropdown items during keyboard navigation.
+             * @param {NodeListOf<HTMLElement>} items - The list of dropdown suggestion divs.
+             */
+            function updateHighlight(items) {
+                items.forEach((item, i) => item.classList.toggle('highlight', i === currentIndex));
+            }
+
+            /**
+             * Selects an item from the dropdown and updates the input field.
+             * @param {string} name - The name of the selected item.
+             */
+            function selectItem(name) {
+                input.value = name;
+                dropdown.style.display = 'none'; // Hide dropdown after selection
+                if (onSelectCallback) {
+                    onSelectCallback(name); // Execute callback with selected item
+                    // If store is selected, auto-focus supplier search for convenience
+                    if (inputId === 'storeSearch') {
+                        supplierSearch.focus();
+                    }
+                }
+            }
+
+            // Click event listener on the document to close dropdowns when clicking outside
+            document.addEventListener('click', e => {
+                const isClickInsideStoreSearch = storeSearch.closest('.search-box')?.contains(e.target);
+                const isClickInsideSupplierSearch = supplierSearch.closest('.search-box')?.contains(e.target);
+                
+                // If click is outside the store search box, hide its dropdown
+                if (!isClickInsideStoreSearch) {
+                    storeDropdown.style.display = 'none';
+                }
+                // If click is outside the supplier search box, hide its dropdown
+                if (!isClickInsideSupplierSearch) {
+                    supplierDropdown.style.display = 'none';
+                }
+            });
+        }
+
+        /**
+         * Loads order data based on selected supplier code and store name.
+         */
+        async function loadOrders() {
+            if (!selectedSupplierCode || !selectedStore) return; // Do nothing if store or supplier is not selected
+
+            showLoading(); // Show loading indicator
+            try {
+                const response = await fetch(`/get_orders?suppliercode=${encodeURIComponent(selectedSupplierCode)}&storename=${encodeURIComponent(selectedStore)}`);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                allData = await response.json(); // Get all order data
+                totalItems = allData.length; // Update total items count
+                currentPage = 1; // Reset to the first page when new data is loaded
+
+                if (totalItems === 0) {
+                    // Display message if no orders are found
+                    tableBody.innerHTML = `<tr><td colspan="7" style="color: red; text-align: center; padding: 20px;">No Order Placed for this Supplier</td></tr>`;
+                    paginationContainer.innerHTML = ''; // Clear pagination
+                    tableInfo.textContent = `Showing 0 of 0 products`; // Update table info
+                    hideLoading(); // Hide loading even if no data
+                    return;
+                }
+
+                renderTable(); // Render the table with the fetched data
+                createPagination(); // Create pagination buttons
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                showNotification('Error', 'Failed to load order data', 'error');
+            } finally {
+                hideLoading(); // Hide loading indicator
+            }
+        }
+
+        /**
+         * Renders the current page of order data into the table.
+         */
+        function renderTable() {
+            tableBody.innerHTML = ''; // Clear existing table rows
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, totalItems);
+
+            // Loop through the data for the current page
+            for (let i = startIndex; i < endIndex; i++) {
+                const rowData = allData[i];
+                const rowNumber = i + 1; // Calculate serial number for the row
+                const originalOrderQty = rowData.OrderQty;
+                
+                const tr = document.createElement('tr');
+                // Store all relevant data as dataset attributes on the row for easy retrieval
+                tr.dataset.productcode = rowData.ProductCode;
+                tr.dataset.productname = rowData.ProductName;
+                tr.dataset.saleunit = rowData.SaleUnit;
+                tr.dataset.orderid = rowData.OrderId;
+                tr.dataset.storecode = rowData.StoreCode;
+                tr.dataset.storename = selectedStore; // Store the currently selected store name
+
+                tr.innerHTML = `
+                    <td style="text-align: center;">${rowNumber}</td>
+                    <td>${rowData.ProductCode}</td>
+                    <td>${rowData.ProductName}</td>
+                    <td style="text-align: center;">${rowData.OrderQty}</td>
+                    <td></td> <!-- Placeholder for Edit Qty input -->
+                    <td style="text-align: center;">${rowData.SaleUnit}</td>
+                    <td></td> <!-- Placeholder for Remarks -->
+                `;
+
+                const editQtyInput = document.createElement('input');
+                editQtyInput.type = 'number';
+                editQtyInput.value = originalOrderQty; // Set initial value to original quantity
+                editQtyInput.className = 'edit-qty';
+                editQtyInput.dataset.original = originalOrderQty; // Store original quantity as a data attribute
+                editQtyInput.min = 0; // Ensure input is non-negative
+
+                // Get the remark cell reference before appending the input
+                const remarkCell = tr.children[6]; // Remarks is the 7th cell (index 6)
+                
+                // Calculate initial remark and status and store them as dataset attributes on the input
+                const initialRemarkResult = updateRemark(null, originalOrderQty, originalOrderQty); // Pass null for remarkCell as we just need return values
+                editQtyInput.dataset.initialRemarkText = initialRemarkResult.remarkText; // Store initial remark text
+                editQtyInput.dataset.initialStatusForDB = initialRemarkResult.statusForDB; // Store initial status
+
+                // Set current remark and status on load (same as initial for now)
+                editQtyInput.dataset.currentRemarkText = initialRemarkResult.remarkText;
+                editQtyInput.dataset.currentStatusForDB = initialRemarkResult.statusForDB;
+
+                // Add event listener to update remark when 'Edit Qty' changes
+                editQtyInput.addEventListener('input', (event) => {
+                    let newValue = event.target.value;
+                    // Validate input to ensure it's a non-negative integer
+                    if (newValue === '' || isNaN(newValue) || parseInt(newValue, 10) < 0) {
+                        newValue = 0; // Default to 0 if invalid
+                        event.target.value = 0; // Update input field to reflect 0
+                    } else {
+                        newValue = parseInt(newValue, 10); // Convert to integer
+                        event.target.value = newValue; // Update input field (removes leading zeros, etc.)
+                    }
+                    const { remarkText, statusForDB } = updateRemark(remarkCell, newValue, originalOrderQty);
+                    editQtyInput.dataset.currentRemarkText = remarkText; // Update current remark text
+                    editQtyInput.dataset.currentStatusForDB = statusForDB; // Update current status
+                });
+
+                // Append the input to the 'Edit Qty' cell (index 4)
+                const editQtyCell = tr.children[4];
+                editQtyCell.appendChild(editQtyInput);
+
+                // Perform initial DOM remark update (needed once after input is appended)
+                updateRemark(remarkCell, originalOrderQty, originalOrderQty);
+
+                tableBody.appendChild(tr); // Add row to the table
+            }
+
+            updateTableInfo(); // Update the table info display
+        }
+
+        /**
+         * Initializes the application by setting up event listeners for search boxes and buttons.
+         */
+        function init() {
+            // Setup Store Search Box
+            setupSearchBox('storeSearch', 'storeDropdown', '/search_store', store => {
+                selectedStore = store;
+                selectedSupplierCode = ''; // Reset supplier when store changes
+                supplierSearch.value = ''; // Clear supplier search input
+                tableBody.innerHTML = ''; // Clear table content
+                paginationContainer.innerHTML = ''; // Clear pagination
+                updateTableInfo(); // Update table info to reflect empty state
+            });
+
+            // Setup Supplier Search Box
+            setupSearchBox('supplierSearch', 'supplierDropdown', '/search_supplier', supplier => {
+                if (!selectedStore) {
+                    showNotification('Error', 'Please select a store first', 'error');
+                    supplierSearch.value = ''; // Clear supplier search if no store selected
+                    return;
+                }
+                showLoading(); // Show loading indicator
+                // Fetch supplier code based on supplier name and selected store
+                fetch(`/get_suppliercode?suppliername=${encodeURIComponent(supplier)}&storename=${encodeURIComponent(selectedStore)}`)
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        selectedSupplierCode = data.suppliercode;
+                        if (selectedSupplierCode) {
+                            loadOrders(); // Load orders if supplier code is found
+                        } else {
+                            showNotification('Error', 'Supplier code not found for selected store.', 'error');
+                            tableBody.innerHTML = `<tr><td colspan="7" style="color: red; text-align: center; padding: 20px;">No Order Placed for this Supplier</td></tr>`;
+                            paginationContainer.innerHTML = '';
+                            updateTableInfo();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching supplier code:', error);
+                        showNotification('Error', 'Failed to retrieve supplier information', 'error');
+                        tableBody.innerHTML = `<tr><td colspan="7" style="color: red; text-align: center; padding: 20px;">Error loading supplier data.</td></tr>`;
+                        paginationContainer.innerHTML = '';
+                        updateTableInfo();
+                    })
+                    .finally(() => {
+                        hideLoading(); // Hide loading indicator
+                    });
+            });
+
+            // Event listener for the 'Submit Changes' button
+            submitBtn.addEventListener('click', async () => {
+                if (!selectedSupplierCode || !selectedStore) {
+                    showNotification('Error', 'Please select a store and supplier first', 'error');
+                    return;
+                }
+
+                const updatedData = [];
+                const rows = tableBody.querySelectorAll('tr');
+                
+                // If there are no actual data rows (only the "No Order Placed" message), return
+                if (rows.length === 0 || rows[0].querySelector('td').textContent.includes('No Order Placed')) {
+                    showNotification('Info', 'No orders to submit. Please select a supplier with orders.', 'info');
+                    return;
+                }
+
+                // Iterate through ALL table rows to collect updated quantities
+                rows.forEach((row) => {
+                    const editQtyInput = row.querySelector('.edit-qty');
+                    
+                    const productCode = row.dataset.productcode;
+                    const productName = row.dataset.productname;
+                    const saleUnit = row.dataset.saleunit;
+                    const orderId = row.dataset.orderid;
+                    const storeCode = row.dataset.storecode;
+                    const storeName = row.dataset.storename;
+
+                    const newQty = parseInt(editQtyInput.value, 10);
+                    const originalQty = parseInt(editQtyInput.dataset.original, 10);
+                    const diffQty = newQty - originalQty; 
+                    const webRemarks = editQtyInput.dataset.currentRemarkText;
+                    const status = editQtyInput.dataset.currentStatusForDB;
+
+                    // ALWAYS push to updatedData, regardless of change
+                    updatedData.push({
+                        ProductCode: productCode,
+                        ProductName: productName,
+                        EditQty: newQty,
+                        OrQty: originalQty,
+                        Diffqty: diffQty,
+                        SaleUnit: saleUnit,
+                        WantedType: 'NA', // Defaulting as per discussion, adjust if needed
+                        Status: status, 
+                        webRemarks: webRemarks,   
+                        OrderId: orderId,         
+                        StoreName: storeName,     
+                        StoreCode: storeCode      
+                    });
+                });
+
+                console.log("Updated data being sent to backend:", updatedData); // DEBUG: Check data before sending
+
+                if (updatedData.length > 0) {
+                    showLoading(); // Show loading indicator
+                    try {
+                        const response = await fetch('/update_orders', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                suppliercode: selectedSupplierCode, 
+                                storename: selectedStore, 
+                                updatedData: updatedData
+                            })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        const data = await response.json();
+
+                        if (data.success) {
+                            showNotification('Success', data.message || `Updated ${updatedData.length} items`, 'success');
+                            loadOrders(); // Reload the table to reflect the saved changes
+                        } else {
+                            showNotification('Error', data.message || 'Failed to update order quantities', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error updating orders:', error);
+                        showNotification('Error', `Failed to update order quantities: ${error.message}`, 'error');
+                    } finally {
+                        hideLoading(); // Hide loading indicator
+                    }
+                } else {
+                    showNotification('Info', 'No changes to submit', 'info');
+                }
+            });
+
+            // Event listener for the 'Reset' button
+            resetBtn.addEventListener('click', () => {
+                // Check if a store, supplier, and data exist before resetting
+                if (!selectedSupplierCode || !selectedStore || allData.length === 0) {
+                    showNotification('Info', 'No orders to reset or select a store/supplier first.', 'info');
+                    return;
+                }
+                loadOrders(); // Reload orders to revert to original values
+                showNotification('Info', 'Table has been reset to original values', 'info');
+            });
+        }
+
+        // Initialize the application when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+    {% endraw %}
+</body>
+</html>
