@@ -1,8 +1,0 @@
-# Add all your changes
-git add app.py
-
-# Commit your changes with a message
-git commit -m "Update app.py"
-
-# Push to GitHub
-git push

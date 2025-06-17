@@ -1,0 +1,9 @@
+*.docx
+*.pyc
+__pycache__/
+venv/
+node_modules/
+.DS_Store
+.git/
+Support Documents/
+Student_Profile.docx
