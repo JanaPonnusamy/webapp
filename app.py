@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 import pyodbc
 import os
 from dotenv import load_dotenv
+import pyodbc
+print("Available ODBC drivers:", pyodbc.drivers())
 load_dotenv('webapp.env')  # Specify your custom filename here!
 
 app = Flask(__name__)
