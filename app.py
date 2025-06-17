@@ -1,6 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, render_template_string
 import pyodbc
 import os
+from dotenv import load_dotenv
+load_dotenv('webapp.env')  # Specify your custom filename here!
 
 app = Flask(__name__)
 
