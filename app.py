@@ -3,17 +3,9 @@ import pyodbc
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Used for session encryption
 
-# SQL Server connection string
-conn_str = (
-    "Driver={ODBC Driver 17 for SQL Server};"
-    "Server=tcp:cpms.database.windows.net,1433;"  # Your Azure SQL Server name
-    "Database=CPMS;"  # Assuming your database name is 'ordermanagementdb'
-    "UID=cpms;"  # Your SQL admin username
-    "PWD=Order@1711;"  # Your SQL admin password
-    "Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"  # Recommended for Azure SQL
-)
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_secret_key')
+conn_str = os.environ.get('AZURE_SQL_CONNECTION')
 
 # Check credentials in Users table
 def check_login(username, password):
