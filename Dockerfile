@@ -1,10 +1,9 @@
 FROM python:3.11-slim
 
-# System dependencies and ODBC Driver for SQL Server
 RUN apt-get update \
  && apt-get install -y curl gnupg2 ca-certificates unixodbc unixodbc-dev gcc g++ \
  && curl -sSL https://packages.microsoft.com/keys/microsoft-prod.pub | gpg --dearmor | tee /usr/share/keyrings/microsoft-prod.gpg > /dev/null \
- && echo "deb [signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" > /etc/apt/sources.list.d/mssql-release.list
+ && echo "deb [signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" > /etc/apt/sources.list.d/mssql-release.list \
  && apt-get update \
  && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
  && rm -rf /var/lib/apt/lists/*
