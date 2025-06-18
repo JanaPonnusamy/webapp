@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-import pymssql
+import pyodbc
 import os
 from dotenv import load_dotenv
 
@@ -9,21 +9,18 @@ load_dotenv('webapp.env')
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_secret_key')
 
-# Database connection details from .env
-db_server = os.environ.get('DB_SERVER')
-db_user = os.environ.get('DB_USER')
-db_password = os.environ.get('DB_PASSWORD')
-db_name = os.environ.get('DB_NAME')
+# Get ODBC connection string from env
+conn_str = os.environ.get('AZURE_SQL_CONNECTION')
 
 def get_db_connection():
-    return pymssql.connect(server=db_server, user=db_user, password=db_password, database=db_name)
+    return pyodbc.connect(conn_str)
 
 # Check credentials in Users table
 def check_login(username, password):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Users WHERE Username=%s AND Password=%s", (username, password))
+        cursor.execute("SELECT * FROM Users WHERE Username=? AND Password=?", (username, password))
         row = cursor.fetchone()
         conn.close()
         return row is not None
@@ -64,7 +61,7 @@ def search_store():
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("SELECT TOP 10 StoreName FROM Stores WHERE StoreName LIKE %s AND isactive=1", ('%' + query + '%',))
+            cursor.execute("SELECT TOP 10 StoreName FROM Stores WHERE StoreName LIKE ? AND isactive=1", ('%' + query + '%',))
             matches = [row[0] for row in cursor.fetchall()]
             conn.close()
         except Exception as e:
@@ -83,7 +80,7 @@ def search_supplier():
             cursor.execute("""
                 SELECT TOP 10 SupplierName 
                 FROM OrderSuppliers 
-                WHERE SupplierName LIKE %s AND StoreName = %s
+                WHERE SupplierName LIKE ? AND StoreName = ?
             """, ('%' + query + '%', store))
             matches = [row[0] for row in cursor.fetchall()]
             conn.close()
@@ -105,8 +102,8 @@ def get_orders():
             SELECT productcode, productname, OrderQty, saleunit, mrp, orsupplier, remarks, OrderId, StoreCode
             FROM ordermanagement
             WHERE status = 1
-              AND orsuppliercode IN (SELECT Value FROM dbo.SplitString(%s, ','))
-              AND storename = %s
+              AND orsuppliercode IN (SELECT Value FROM dbo.SplitString(?, ','))
+              AND storename = ?
               AND orderqty > 0
             ORDER BY productname
         """
@@ -138,7 +135,7 @@ def get_suppliercode():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT TOP 1 SupplierCode FROM OrderSuppliers WHERE SupplierName=%s AND StoreName=%s", (suppliername, storename))
+        cursor.execute("SELECT TOP 1 SupplierCode FROM OrderSuppliers WHERE SupplierName=? AND StoreName=?", (suppliername, storename))
         row = cursor.fetchone()
         if row:
             code = row[0]
@@ -173,24 +170,24 @@ def update_orders():
             item_store_code = item.get('StoreCode')
             cursor.execute("""
                 SELECT COUNT(*) FROM weborderstatus
-                WHERE OrderId = %s AND ProductCode = %s
+                WHERE OrderId = ? AND ProductCode = ?
             """, (order_id, product_code))
             exists = cursor.fetchone()[0] > 0
             if exists:
                 update_query = """
                     UPDATE weborderstatus
                     SET
-                        EditQty = %s,
-                        Diffqty = %s,
-                        Status = %s,
-                        webRemarks = %s,
-                        OrQty = %s,
-                        ProductName = %s,
-                        SaleUnit = %s,
-                        WantedType = %s,
-                        StoreName = %s,
-                        StoreCode = %s
-                    WHERE OrderId = %s AND ProductCode = %s
+                        EditQty = ?,
+                        Diffqty = ?,
+                        Status = ?,
+                        webRemarks = ?,
+                        OrQty = ?,
+                        ProductName = ?,
+                        SaleUnit = ?,
+                        WantedType = ?,
+                        StoreName = ?,
+                        StoreCode = ?
+                    WHERE OrderId = ? AND ProductCode = ?
                 """
                 params = (edit_qty, diff_qty, status_text, web_remarks, or_qty,
                           product_name, sale_unit, wanted_type, item_store_name, item_store_code,
@@ -201,7 +198,7 @@ def update_orders():
                     INSERT INTO weborderstatus (
                         ProductCode, ProductName, Diffqty, SaleUnit, WantedType,
                         Status, EditQty, OrQty, webRemarks, OrderId, StoreName, StoreCode
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """
                 params = (product_code, product_name, diff_qty, sale_unit, wanted_type,
                           status_text, edit_qty, or_qty, web_remarks, order_id, item_store_name, item_store_code)
