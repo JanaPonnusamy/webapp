@@ -1,4 +1,5 @@
 Flask
+pymssql
 gunicorn
 pyodbc
 python-dotenv
