@@ -3,12 +3,13 @@ import pymssql
 import os
 from dotenv import load_dotenv
 
+# Load environment variables from webapp.env
 load_dotenv('webapp.env')
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'fallback_secret_key')
 
-# Parse your connection string or set these directly
+# Database connection details from .env
 db_server = os.environ.get('DB_SERVER')
 db_user = os.environ.get('DB_USER')
 db_password = os.environ.get('DB_PASSWORD')
