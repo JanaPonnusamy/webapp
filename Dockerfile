@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies and Microsoft ODBC Driver 18 for SQL Server
+# Install system dependencies for pyodbc and Microsoft ODBC Driver 18 for SQL Server
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         gcc \
@@ -10,7 +10,8 @@ RUN apt-get update && \
         unixodbc \
         unixodbc-dev \
         curl \
-        gnupg2 && \
+        gnupg2 \
+        ca-certificates && \
     curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /etc/apt/trusted.gpg.d/microsoft.gpg && \
     curl https://packages.microsoft.com/config/debian/11/prod.list -o /etc/apt/sources.list.d/mssql-release.list && \
     apt-get update && \
