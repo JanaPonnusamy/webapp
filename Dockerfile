@@ -2,7 +2,7 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Install system dependencies for pyodbc and Microsoft ODBC Driver 18 for SQL Server
+# Install dependencies and ODBC Driver 18
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         gcc \
