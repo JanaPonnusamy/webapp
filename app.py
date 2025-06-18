@@ -3,15 +3,14 @@ import pyodbc
 import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'replace-this-with-a-secret-key')
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-this')
 
-# Replace with your actual SQL Server connection string or use an environment variable
-DB_CONNECTION_STRING = os.environ.get(
-    'DB_CONNECTION_STRING',
-    'DRIVER={ODBC Driver 17 for SQL Server};SERVER=your-server;DATABASE=your-db;UID=your-user;PWD=your-password'
-)
+# Use the full connection string stored in AZURE_SQL_CONNECTION env var
+DB_CONNECTION_STRING = os.getenv('AZURE_SQL_CONNECTION')
 
 def get_db_connection():
+    if not DB_CONNECTION_STRING:
+        raise ValueError("Database connection string not set in AZURE_SQL_CONNECTION")
     return pyodbc.connect(DB_CONNECTION_STRING)
 
 def check_login(username, password):
@@ -19,8 +18,6 @@ def check_login(username, password):
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM Users WHERE username=? AND password=?", (username, password))
     row = cursor.fetchone()
-    print("Checking login for:", username, password)
-    print("Query result row:", row)
     cursor.close()
     conn.close()
     return row is not None
@@ -40,7 +37,6 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        print("Login form submitted: username={}, password={}".format(username, password))
         if check_login(username, password):
             session['user'] = username
             return redirect(url_for('dashboard'))
@@ -59,7 +55,7 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('login'))
 
-# Add your other routes (search_store, search_supplier, etc.) here
+# Add your other routes here
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8000)
